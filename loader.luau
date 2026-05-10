@@ -1,10 +1,4 @@
 -- =========================
---  CONFIG
--- =========================
-local BASE_URL = "https://raw.githubusercontent.com/tomatizuo-dot/test/main/Games/"
-local API_URL = "https://api.github.com/repos/tomatizuo-dot/test/contents/Games"
-
--- =========================
 --  SERVICES
 -- =========================
 local Players = game:GetService("Players")
@@ -16,6 +10,21 @@ local PlayerGui = player:WaitForChild("PlayerGui")
 
 local HttpGet = game.HttpGet
 local loadstring = loadstring
+
+-- =========================
+--  REMOVE OLD UI
+-- =========================
+local old = PlayerGui:FindFirstChild("OneFileLoader")
+
+if old then
+	old:Destroy()
+end
+
+-- =========================
+--  CONFIG
+-- =========================
+local BASE_URL = "https://raw.githubusercontent.com/tomatizuo-dot/test/main/Games/"
+local API_URL = "https://api.github.com/repos/tomatizuo-dot/test/contents/Games"
 
 -- =========================
 --  UI
@@ -73,7 +82,7 @@ close.Parent = topbar
 local log = Instance.new("TextLabel")
 log.Size = UDim2.new(1,-10,0,40)
 log.Position = UDim2.new(0,5,0,35)
-log.Text = "Ready"
+log.Text = "Loading..."
 log.TextColor3 = Color3.fromRGB(200,200,200)
 log.BackgroundTransparency = 1
 log.Parent = frame
@@ -99,7 +108,7 @@ getgenv().Notify = function(text)
 end
 
 -- =========================
---  DRAG SYSTEM
+--  DRAG
 -- =========================
 local dragging = false
 local dragStart
@@ -121,6 +130,7 @@ end)
 
 UserInputService.InputChanged:Connect(function(input)
 	if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
+
 		local delta = input.Position - dragStart
 
 		frame.Position = UDim2.new(
@@ -138,6 +148,7 @@ end)
 local minimized = false
 
 minimize.MouseButton1Click:Connect(function()
+
 	minimized = not minimized
 
 	if minimized then
@@ -164,6 +175,7 @@ end)
 --  RUN SCRIPT
 -- =========================
 local function run(file)
+
 	log.Text = "Loading: " .. file
 
 	local success, src = pcall(function()
@@ -195,13 +207,24 @@ end
 --  LOAD LIST
 -- =========================
 local function loadList()
-	local response = HttpGet(game, API_URL)
+
+	local success, response = pcall(function()
+		return HttpGet(game, API_URL)
+	end)
+
+	if not success then
+		log.Text = "API failed"
+		return
+	end
+
 	local data = HttpService:JSONDecode(response)
 
 	for _, file in ipairs(data) do
+
 		if file.name:match("%.luau$") then
 
 			local btn = Instance.new("TextButton")
+
 			btn.Size = UDim2.new(1,-5,0,40)
 			btn.Text = file.name
 			btn.BackgroundColor3 = Color3.fromRGB(50,50,50)
