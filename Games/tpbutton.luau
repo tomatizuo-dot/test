@@ -25,7 +25,7 @@ button.Size = UDim2.new(0,70,0,70)
 
 -- 左へ1.5個分くらい移動
 -- 下ボタン高さに合わせる
-button.Position = UDim2.new(1,-240,1,-100)
+button.Position = UDim2.new(1,-250,1,-80)
 
 button.Text = "TP"
 button.TextScaled = true
