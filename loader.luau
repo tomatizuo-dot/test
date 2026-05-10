@@ -58,7 +58,7 @@ title.TextColor3 = Color3.fromRGB(255,255,255)
 title.BackgroundTransparency = 1
 title.Parent = topbar
 
--- 最小化ボタン
+-- 最小化
 local minimize = Instance.new("TextButton")
 minimize.Size = UDim2.new(0,30,0,30)
 minimize.Position = UDim2.new(1,-60,0,0)
@@ -68,7 +68,7 @@ minimize.TextColor3 = Color3.fromRGB(255,255,255)
 minimize.BorderSizePixel = 0
 minimize.Parent = topbar
 
--- 閉じるボタン
+-- 閉じる
 local close = Instance.new("TextButton")
 close.Size = UDim2.new(0,30,0,30)
 close.Position = UDim2.new(1,-30,0,0)
@@ -108,7 +108,7 @@ getgenv().Notify = function(text)
 end
 
 -- =========================
---  DRAG
+--  DRAG (PC + MOBILE)
 -- =========================
 local dragging = false
 local dragInput
@@ -116,6 +116,7 @@ local dragStart
 local startPos
 
 local function update(input)
+
 	local delta = input.Position - dragStart
 
 	frame.Position = UDim2.new(
@@ -136,6 +137,7 @@ topbar.InputBegan:Connect(function(input)
 		startPos = frame.Position
 
 		input.Changed:Connect(function()
+
 			if input.UserInputState == Enum.UserInputState.End then
 				dragging = false
 			end
@@ -159,6 +161,30 @@ UserInputService.InputChanged:Connect(function(input)
 	end
 end)
 
+-- =========================
+--  MINIMIZE
+-- =========================
+local minimized = false
+
+minimize.MouseButton1Click:Connect(function()
+
+	minimized = not minimized
+
+	if minimized then
+
+		scroll.Visible = false
+		log.Visible = false
+		frame.Size = UDim2.new(0,320,0,30)
+		minimize.Text = "+"
+
+	else
+
+		scroll.Visible = true
+		log.Visible = true
+		frame.Size = UDim2.new(0,320,0,400)
+		minimize.Text = "-"
+	end
+end)
 
 -- =========================
 --  CLOSE
