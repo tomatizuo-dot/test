@@ -1,11 +1,4 @@
 -- =========================
--- CONFIG
--- =========================
-
-local BASE_URL = "https://raw.githubusercontent.com/tomatizuo-dot/test/main/Games/"
-local API_URL = "https://api.github.com/repos/tomatizuo-dot/test/contents/Games"
-
--- =========================
 -- SERVICES
 -- =========================
 
@@ -16,24 +9,32 @@ local UserInputService = game:GetService("UserInputService")
 local player = Players.LocalPlayer
 local PlayerGui = player:WaitForChild("PlayerGui")
 
-local HttpGet = game.HttpGet
-local loadstring = loadstring
-
 -- =========================
--- CLEAN OLD UI
+-- CLEAN
 -- =========================
 
 local old = PlayerGui:FindFirstChild("ModernLoader")
 if old then old:Destroy() end
 
 -- =========================
--- DESIGN
+-- STYLE
 -- =========================
 
 local PANEL = Color3.fromRGB(28,28,36)
 local BUTTON = Color3.fromRGB(36,36,46)
 local ACCENT = Color3.fromRGB(145,105,255)
 local TEXT = Color3.fromRGB(235,235,235)
+
+-- =========================
+-- ICONS
+-- =========================
+
+local ICONS = {
+	Home = "rbxassetid://87978649114872",
+	Scripts = "rbxassetid://88733495296113",
+	Player = "rbxassetid://123299484956173",
+	Settings = "rbxassetid://139420333843505"
+}
 
 -- =========================
 -- GUI
@@ -44,24 +45,14 @@ gui.Name = "ModernLoader"
 gui.ResetOnSpawn = false
 gui.Parent = PlayerGui
 
--- =========================
--- MAIN FRAME
--- =========================
-
 local frame = Instance.new("Frame")
 frame.Size = UDim2.new(0,520,0,420)
 frame.Position = UDim2.new(0.5,-260,0.5,-210)
 frame.BackgroundColor3 = PANEL
-frame.BackgroundTransparency = 0.3
+frame.BackgroundTransparency = 0.2
 frame.Parent = gui
 
 Instance.new("UICorner", frame).CornerRadius = UDim.new(0,16)
-
-local stroke = Instance.new("UIStroke")
-stroke.Color = ACCENT
-stroke.Transparency = 0.45
-stroke.Thickness = 2
-stroke.Parent = frame
 
 -- =========================
 -- SIDEBAR
@@ -70,15 +61,9 @@ stroke.Parent = frame
 local sidebar = Instance.new("Frame")
 sidebar.Size = UDim2.new(0,90,1,0)
 sidebar.BackgroundColor3 = Color3.fromRGB(24,24,32)
-sidebar.BackgroundTransparency = 0.15
 sidebar.Parent = frame
 
 Instance.new("UICorner", sidebar).CornerRadius = UDim.new(0,16)
-
-local sideStroke = Instance.new("UIStroke")
-sideStroke.Color = ACCENT
-sideStroke.Transparency = 0.6
-sideStroke.Parent = sidebar
 
 -- =========================
 -- CONTENT
@@ -91,175 +76,42 @@ content.BackgroundTransparency = 1
 content.Parent = frame
 
 -- =========================
--- TITLE
+-- PAGE SYSTEM
 -- =========================
 
-local title = Instance.new("TextLabel")
-title.Size = UDim2.new(1,0,0,50)
-title.BackgroundTransparency = 1
-title.Text = "FriHub"
-title.TextColor3 = TEXT
-title.TextScaled = true
-title.Font = Enum.Font.GothamBold
-title.Parent = frame
+local pageContainer = Instance.new("Frame")
+pageContainer.Size = UDim2.new(1,0,1,0)
+pageContainer.BackgroundTransparency = 1
+pageContainer.Parent = content
 
--- =========================
--- LOG
--- =========================
-
-local log = Instance.new("TextLabel")
-log.Size = UDim2.new(1,-20,0,35)
-log.Position = UDim2.new(0,10,0,50)
-log.BackgroundTransparency = 1
-log.Text = "Ready"
-log.TextColor3 = Color3.fromRGB(190,190,210)
-log.Font = Enum.Font.Gotham
-log.TextScaled = true
-log.Parent = frame
-
--- =========================
--- PAGES SYSTEM
--- =========================
+local pageLayout = Instance.new("Frame")
+pageLayout.Size = UDim2.new(3,0,1,0)
+pageLayout.BackgroundTransparency = 1
+pageLayout.Parent = pageContainer
 
 local pages = {}
 
-local function makePage(name)
+local function makePage(name, index)
 	local page = Instance.new("Frame")
-	page.Size = UDim2.new(1,0,1,0)
+	page.Size = UDim2.new(1/3,0,1,0)
+	page.Position = UDim2.new((index-1)/3,0,0,0)
 	page.BackgroundTransparency = 1
-	page.Visible = false
-	page.Parent = content
-	pages[name] = page
+	page.Parent = pageLayout
+
+	pages[name] = {
+		frame = page,
+		index = index
+	}
+
 	return page
 end
 
-local homePage = makePage("Home")
-local scriptPage = makePage("Scripts")
-local playerPage = makePage("Player")
-
-local function showPage(name)
-	for n, page in pairs(pages) do
-		page.Visible = (n == name)
-	end
-end
+local homePage = makePage("Home",1)
+local scriptPage = makePage("Scripts",2)
+local playerPage = makePage("Player",3)
 
 -- =========================
--- SCROLL (Scripts page)
--- =========================
-
-local scroll = Instance.new("ScrollingFrame")
-scroll.Size = UDim2.new(1,0,1,0)
-scroll.BackgroundTransparency = 1
-scroll.ScrollBarThickness = 2
-scroll.CanvasSize = UDim2.new(0,0,0,0)
-scroll.Parent = scriptPage
-
-local layout = Instance.new("UIListLayout")
-layout.Padding = UDim.new(0,8)
-layout.Parent = scroll
-
-layout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
-	scroll.CanvasSize = UDim2.new(0,0,0,layout.AbsoluteContentSize.Y + 10)
-end)
-
--- =========================
--- RUN SCRIPT
--- =========================
-
-local function run(file)
-	log.Text = "Loading "..file
-
-	local ok, src = pcall(function()
-		return HttpGet(game, BASE_URL .. file .. "?t=" .. os.time())
-	end)
-
-	if not ok then
-		log.Text = "Fetch failed"
-		return
-	end
-
-	local func = loadstring(src)
-	if not func then
-		log.Text = "Compile error"
-		return
-	end
-
-	local success = pcall(func)
-	log.Text = success and ("Executed "..file) or "Runtime error"
-end
-
--- =========================
--- BUTTONS
--- =========================
-
-local function createButton(file)
-	local button = Instance.new("TextButton")
-	button.Size = UDim2.new(1,-5,0,45)
-	button.BackgroundColor3 = BUTTON
-	button.BackgroundTransparency = 0.2
-	button.Text = file.name:gsub("%.luau$","")
-	button.TextColor3 = TEXT
-	button.Font = Enum.Font.GothamBold
-	button.TextScaled = true
-	button.Parent = scroll
-
-	Instance.new("UICorner", button).CornerRadius = UDim.new(0,14)
-
-	local s = Instance.new("UIStroke")
-	s.Color = ACCENT
-	s.Transparency = 0.5
-	s.Parent = button
-
-	button.MouseButton1Click:Connect(function()
-		run(file.name)
-	end)
-end
-
--- =========================
--- SIDEBAR TABS
--- =========================
-
-local function makeTab(name, y)
-	local tab = Instance.new("TextButton")
-	tab.Size = UDim2.new(1,-10,0,40)
-	tab.Position = UDim2.new(0,5,0,y)
-	tab.BackgroundColor3 = BUTTON
-	tab.BackgroundTransparency = 0.25
-	tab.Text = name
-	tab.TextColor3 = TEXT
-	tab.Font = Enum.Font.GothamBold
-	tab.TextScaled = true
-	tab.BorderSizePixel = 0
-	tab.Parent = sidebar
-
-	Instance.new("UICorner", tab).CornerRadius = UDim.new(0,12)
-
-	local s = Instance.new("UIStroke")
-	s.Color = ACCENT
-	s.Transparency = 0.6
-	s.Parent = tab
-
-	return tab
-end
-
-local homeTab = makeTab("Home",70)
-local scriptTab = makeTab("Scripts",120)
-local playerTab = makeTab("Player",170)
-
-homeTab.MouseButton1Click:Connect(function()
-	showPage("Home")
-end)
-
-scriptTab.MouseButton1Click:Connect(function()
-	showPage("Scripts")
-end)
-
-playerTab.MouseButton1Click:Connect(function()
-	showPage("Player")
-end)
-
--- =========================
--- HOME CONTENT
+-- HOME
 -- =========================
 
 local homeText = Instance.new("TextLabel")
@@ -272,89 +124,159 @@ homeText.TextScaled = true
 homeText.Parent = homePage
 
 -- =========================
--- CLOSE / MINIMIZE
+-- PLAYER
 -- =========================
 
-local minimized = false
+local avatar = Instance.new("ImageLabel")
+avatar.Size = UDim2.new(0,100,0,100)
+avatar.Position = UDim2.new(0,10,0,10)
+avatar.BackgroundTransparency = 1
+avatar.Parent = playerPage
 
-local close = Instance.new("TextButton")
-close.Size = UDim2.new(0,32,0,32)
-close.Position = UDim2.new(1,-40,0,10)
-close.BackgroundColor3 = Color3.fromRGB(55,55,70)
-close.Text = "✕"
-close.TextColor3 = TEXT
-close.TextScaled = true
-close.Font = Enum.Font.GothamBold
-close.Parent = frame
-
-Instance.new("UICorner", close).CornerRadius = UDim.new(0,10)
-
-close.MouseButton1Click:Connect(function()
-	gui:Destroy()
-end)
-
-local minimize = Instance.new("TextButton")
-minimize.Size = UDim2.new(0,32,0,32)
-minimize.Position = UDim2.new(1,-80,0,10)
-minimize.BackgroundColor3 = Color3.fromRGB(55,55,70)
-minimize.Text = "-"
-minimize.TextColor3 = TEXT
-minimize.TextScaled = true
-minimize.Font = Enum.Font.GothamBold
-minimize.Parent = frame
-
-Instance.new("UICorner", minimize).CornerRadius = UDim.new(0,10)
-
-minimize.MouseButton1Click:Connect(function()
-	minimized = not minimized
-	content.Visible = not minimized
-	log.Visible = not minimized
-	frame.Size = minimized and UDim2.new(0,360,0,60) or UDim2.new(0,520,0,420)
-end)
+avatar.Image = Players:GetUserThumbnailAsync(
+	player.UserId,
+	Enum.ThumbnailType.HeadShot,
+	Enum.ThumbnailSize.Size100x100
+)
 
 -- =========================
--- DRAG
+-- SCRIPTS
 -- =========================
 
-local dragging = false
-local dragStart
-local startPos
+local function addButton(text)
+	local b = Instance.new("TextButton")
+	b.Size = UDim2.new(1,-20,0,40)
+	b.BackgroundColor3 = BUTTON
+	b.Text = text
+	b.TextColor3 = TEXT
+	b.Font = Enum.Font.GothamBold
+	b.TextScaled = true
+	b.Parent = scriptPage
 
-title.InputBegan:Connect(function(input)
-	if input.UserInputType == Enum.UserInputType.MouseButton1 then
-		dragging = true
-		dragStart = input.Position
-		startPos = frame.Position
-	end
-end)
+	Instance.new("UICorner", b).CornerRadius = UDim.new(0,10)
 
-UserInputService.InputChanged:Connect(function(input)
-	if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
-		local delta = input.Position - dragStart
-		frame.Position = UDim2.new(
-			startPos.X.Scale,
-			startPos.X.Offset + delta.X,
-			startPos.Y.Scale,
-			startPos.Y.Offset + delta.Y
-		)
-	end
-end)
+	return b
+end
 
-UserInputService.InputEnded:Connect(function(input)
-	if input.UserInputType == Enum.UserInputType.MouseButton1 then
-		dragging = false
-	end
-end)
+addButton("tp")
+addButton("test")
 
 -- =========================
--- OPEN ANIMATION
+-- INDICATOR
 -- =========================
 
-frame.Size = UDim2.new(0,0,0,0)
+local indicator = Instance.new("Frame")
+indicator.Size = UDim2.new(0,4,0,40)
+indicator.Position = UDim2.new(0,0,0,70)
+indicator.BackgroundColor3 = ACCENT
+indicator.BorderSizePixel = 0
+indicator.Parent = sidebar
 
-TweenService:Create(frame, TweenInfo.new(0.35, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {
-	Size = UDim2.new(0,520,0,420)
-}):Play()
+Instance.new("UICorner", indicator).CornerRadius = UDim.new(1,0)
 
--- DEFAULT PAGE
+-- =========================
+-- TAB SYSTEM
+-- =========================
+
+local tabButtons = {}
+local current = "Home"
+
+local function showPage(name)
+	local target = pages[name].index - 1
+
+	TweenService:Create(pageLayout, TweenInfo.new(0.35, Enum.EasingStyle.Quint), {
+		Position = UDim2.new(-target,0,0,0)
+	}):Play()
+
+	current = name
+end
+
+local function makeTab(name, y)
+	local t = Instance.new("TextButton")
+	t.Size = UDim2.new(1,-10,0,40)
+	t.Position = UDim2.new(0,5,0,y)
+	t.BackgroundColor3 = BUTTON
+	t.Text = ""
+	t.Parent = sidebar
+
+	Instance.new("UICorner", t).CornerRadius = UDim.new(0,12)
+
+	-- icon
+	local icon = Instance.new("ImageLabel")
+	icon.Size = UDim2.new(0,22,0,22)
+	icon.Position = UDim2.new(0,12,0.5,-11)
+	icon.BackgroundTransparency = 1
+	icon.Image = ICONS[name]
+	icon.ImageColor3 = TEXT
+	icon.Parent = t
+
+	local scale = Instance.new("UIScale")
+	scale.Scale = 1
+	scale.Parent = icon
+
+	-- label
+	local label = Instance.new("TextLabel")
+	label.Size = UDim2.new(1,-50,1,0)
+	label.Position = UDim2.new(0,40,0,0)
+	label.BackgroundTransparency = 1
+	label.Text = name
+	label.TextColor3 = TEXT
+	label.Font = Enum.Font.GothamBold
+	label.TextScaled = true
+	label.TextXAlignment = Enum.TextXAlignment.Left
+	label.Parent = t
+
+	tabButtons[name] = t
+
+	t.MouseButton1Click:Connect(function()
+		showPage(name)
+
+		-- indicator move
+		TweenService:Create(indicator, TweenInfo.new(0.35), {
+			Position = UDim2.new(0,0,0,t.Position.Y.Offset)
+		}):Play()
+
+		-- reset tabs
+		for _,btn in pairs(tabButtons) do
+			TweenService:Create(btn, TweenInfo.new(0.2), {
+				BackgroundColor3 = BUTTON
+			}):Play()
+
+			local img = btn:FindFirstChildOfClass("ImageLabel")
+			if img and img:FindFirstChildOfClass("UIScale") then
+				TweenService:Create(img.UIScale, TweenInfo.new(0.2), {
+					Scale = 1
+				}):Play()
+			end
+		end
+
+		-- active
+		TweenService:Create(t, TweenInfo.new(0.2), {
+			BackgroundColor3 = Color3.fromRGB(55,55,80)
+		}):Play()
+
+		local activeImg = t:FindFirstChildOfClass("ImageLabel")
+		if activeImg and activeImg:FindFirstChildOfClass("UIScale") then
+			TweenService:Create(activeImg.UIScale, TweenInfo.new(0.2), {
+				Scale = 1.1
+			}):Play()
+		end
+	end)
+
+	return t
+end
+
+makeTab("Home",70)
+makeTab("Scripts",120)
+makeTab("Player",170)
+
+-- =========================
+-- START
+-- =========================
+
 showPage("Home")
+
+task.wait()
+indicator.Position = UDim2.new(0,0,0,tabButtons["Home"].Position.Y.Offset)
+
+tabButtons["Home"].BackgroundColor3 = Color3.fromRGB(55,55,80)
