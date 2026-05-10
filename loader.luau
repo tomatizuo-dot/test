@@ -108,56 +108,57 @@ getgenv().Notify = function(text)
 end
 
 -- =========================
---  DRAG (PC + MOBILE)
+--  DRAG
 -- =========================
 local dragging = false
-local dragInput
 local dragStart
 local startPos
 
-local function update(input)
-
-	local delta = input.Position - dragStart
-
-	frame.Position = UDim2.new(
-		startPos.X.Scale,
-		startPos.X.Offset + delta.X,
-		startPos.Y.Scale,
-		startPos.Y.Offset + delta.Y
-	)
-end
-
 topbar.InputBegan:Connect(function(input)
 
-	if input.UserInputType == Enum.UserInputType.MouseButton1
-	or input.UserInputType == Enum.UserInputType.Touch then
-
-		dragging = true
-		dragStart = input.Position
-		startPos = frame.Position
-
-		input.Changed:Connect(function()
-
-			if input.UserInputState == Enum.UserInputState.End then
-				dragging = false
-			end
-		end)
+	if input.UserInputType ~= Enum.UserInputType.MouseButton1
+	and input.UserInputType ~= Enum.UserInputType.Touch then
+		return
 	end
-end)
 
-topbar.InputChanged:Connect(function(input)
+	local pos = input.Position
+	local absPos = topbar.AbsolutePosition
+	local absSize = topbar.AbsoluteSize
 
-	if input.UserInputType == Enum.UserInputType.MouseMovement
-	or input.UserInputType == Enum.UserInputType.Touch then
-
-		dragInput = input
+	-- 右側ボタン部分はドラッグ無効
+	if pos.X > absPos.X + absSize.X - 70 then
+		return
 	end
+
+	dragging = true
+	dragStart = pos
+	startPos = frame.Position
 end)
 
 UserInputService.InputChanged:Connect(function(input)
 
-	if input == dragInput and dragging then
-		update(input)
+	if dragging and (
+		input.UserInputType == Enum.UserInputType.MouseMovement
+		or input.UserInputType == Enum.UserInputType.Touch
+	) then
+
+		local delta = input.Position - dragStart
+
+		frame.Position = UDim2.new(
+			startPos.X.Scale,
+			startPos.X.Offset + delta.X,
+			startPos.Y.Scale,
+			startPos.Y.Offset + delta.Y
+		)
+	end
+end)
+
+UserInputService.InputEnded:Connect(function(input)
+
+	if input.UserInputType == Enum.UserInputType.MouseButton1
+	or input.UserInputType == Enum.UserInputType.Touch then
+
+		dragging = false
 	end
 end)
 
