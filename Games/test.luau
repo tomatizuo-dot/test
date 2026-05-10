@@ -1,16 +1,28 @@
-getgenv().Notify("外部スクリプト読み込み成功")
+local player = game.Players.LocalPlayer
+local camera = workspace.CurrentCamera
+local userInputService = game:GetService("UserInputService")
+local event = game.ReplicatedStorage:WaitForChild("GrabEvent")
 
-local Players = game:GetService("Players")
-local player = Players.LocalPlayer
-local gui = Instance.new("ScreenGui", player:WaitForChild("PlayerGui"))
+local function getCenterTarget()
+	local ray = camera:ViewportPointToRay(camera.ViewportSize.X/2, camera.ViewportSize.Y/2)
 
-local frame = Instance.new("Frame")
-frame.Size = UDim2.new(0, 200, 0, 100)
-frame.BackgroundColor3 = Color3.fromRGB(40,40,40)
-frame.Parent = gui
+	local params = RaycastParams.new()
+	params.FilterType = Enum.RaycastFilterType.Blacklist
+	params.FilterDescendantsInstances = {player.Character}
 
-local text = Instance.new("TextLabel")
-text.Size = UDim2.new(1,0,1,0)
-text.Text = "Hello from GitHub"
-text.TextColor3 = Color3.new(1,1,1)
-text.Parent = frame
+	local result = workspace:Raycast(ray.Origin, ray.Direction * 500, params)
+	return result and result.Instance
+end
+
+userInputService.InputBegan:Connect(function(input, gp)
+	if gp then return end
+
+	if input.UserInputType == Enum.UserInputType.MouseButton1
+		or input.UserInputType == Enum.UserInputType.Touch then
+
+		local target = getCenterTarget()
+		if target then
+			event:FireServer(target)
+		end
+	end
+end)
