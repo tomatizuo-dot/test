@@ -1,9 +1,17 @@
 -- =========================
---  SERVICES
+-- CONFIG
 -- =========================
+
+local BASE_URL = "https://raw.githubusercontent.com/tomatizuo-dot/test/main/Games/"
+local API_URL = "https://api.github.com/repos/tomatizuo-dot/test/contents/Games"
+
+-- =========================
+-- SERVICES
+-- =========================
+
 local Players = game:GetService("Players")
 local HttpService = game:GetService("HttpService")
-local UserInputService = game:GetService("UserInputService")
+local TweenService = game:GetService("TweenService")
 
 local player = Players.LocalPlayer
 local PlayerGui = player:WaitForChild("PlayerGui")
@@ -12,268 +20,299 @@ local HttpGet = game.HttpGet
 local loadstring = loadstring
 
 -- =========================
---  REMOVE OLD UI
+-- REMOVE OLD UI
 -- =========================
-local old = PlayerGui:FindFirstChild("OneFileLoader")
+
+local old = PlayerGui:FindFirstChild("ModernLoader")
 
 if old then
 	old:Destroy()
 end
 
 -- =========================
---  CONFIG
+-- DESIGN
 -- =========================
-local BASE_URL = "https://raw.githubusercontent.com/tomatizuo-dot/test/main/Games/"
-local API_URL = "https://api.github.com/repos/tomatizuo-dot/test/contents/Games"
+
+local PANEL = Color3.fromRGB(28,28,36)
+local BUTTON = Color3.fromRGB(36,36,46)
+
+local ACCENT = Color3.fromRGB(145,105,255)
+
+local TEXT = Color3.fromRGB(235,235,235)
 
 -- =========================
---  UI
+-- GUI
 -- =========================
+
 local gui = Instance.new("ScreenGui")
-gui.Name = "OneFileLoader"
+gui.Name = "ModernLoader"
 gui.ResetOnSpawn = false
 gui.Parent = PlayerGui
 
+-- =========================
+-- MAIN FRAME
+-- =========================
+
 local frame = Instance.new("Frame")
-frame.Size = UDim2.new(0, 320, 0, 400)
-frame.Position = UDim2.new(0.5, -160, 0.5, -200)
-frame.BackgroundColor3 = Color3.fromRGB(25,25,25)
-frame.BorderSizePixel = 0
-frame.Active = true
+
+frame.Size = UDim2.new(0,360,0,420)
+frame.Position = UDim2.new(0.5,-180,0.5,-210)
+
+frame.BackgroundColor3 = PANEL
+frame.BackgroundTransparency = 0.3
+
 frame.Parent = gui
 
--- タイトルバー
-local topbar = Instance.new("Frame")
-topbar.Size = UDim2.new(1,0,0,30)
-topbar.BackgroundColor3 = Color3.fromRGB(35,35,35)
-topbar.BorderSizePixel = 0
-topbar.Parent = frame
+-- Corner
+local frameCorner = Instance.new("UICorner")
+
+frameCorner.CornerRadius = UDim.new(0,16)
+frameCorner.Parent = frame
+
+-- Stroke
+local frameStroke = Instance.new("UIStroke")
+
+frameStroke.Thickness = 2
+frameStroke.Color = ACCENT
+frameStroke.Transparency = 0.45
+
+frameStroke.Parent = frame
+
+-- Gradient
+local frameGradient = Instance.new("UIGradient")
+
+frameGradient.Color = ColorSequence.new{
+	ColorSequenceKeypoint.new(
+		0,
+		Color3.fromRGB(40,40,50)
+	),
+
+	ColorSequenceKeypoint.new(
+		1,
+		Color3.fromRGB(18,18,24)
+	)
+}
+
+frameGradient.Rotation = 90
+frameGradient.Parent = frame
+
+-- =========================
+-- TITLE
+-- =========================
 
 local title = Instance.new("TextLabel")
-title.Size = UDim2.new(1,-70,1,0)
-title.Position = UDim2.new(0,10,0,0)
-title.Text = "One File Loader"
-title.TextXAlignment = Enum.TextXAlignment.Left
-title.TextColor3 = Color3.fromRGB(255,255,255)
+
+title.Size = UDim2.new(1,0,0,50)
 title.BackgroundTransparency = 1
-title.Parent = topbar
 
--- 最小化
-local minimize = Instance.new("TextButton")
-minimize.Size = UDim2.new(0,30,0,30)
-minimize.Position = UDim2.new(1,-60,0,0)
-minimize.Text = "-"
-minimize.BackgroundColor3 = Color3.fromRGB(50,50,50)
-minimize.TextColor3 = Color3.fromRGB(255,255,255)
-minimize.BorderSizePixel = 0
-minimize.Parent = topbar
+title.Text = "Modern Loader"
 
--- 閉じる
-local close = Instance.new("TextButton")
-close.Size = UDim2.new(0,30,0,30)
-close.Position = UDim2.new(1,-30,0,0)
-close.Text = "X"
-close.BackgroundColor3 = Color3.fromRGB(120,40,40)
-close.TextColor3 = Color3.fromRGB(255,255,255)
-close.BorderSizePixel = 0
-close.Parent = topbar
+title.TextColor3 = TEXT
+title.TextScaled = true
+title.Font = Enum.Font.GothamBold
 
--- ログ
+title.Parent = frame
+
+-- =========================
+-- LOG
+-- =========================
+
 local log = Instance.new("TextLabel")
-log.Size = UDim2.new(1,-10,0,40)
-log.Position = UDim2.new(0,5,0,35)
-log.Text = "Loading..."
-log.TextColor3 = Color3.fromRGB(200,200,200)
+
+log.Size = UDim2.new(1,-20,0,35)
+log.Position = UDim2.new(0,10,0,50)
+
 log.BackgroundTransparency = 1
+
+log.Text = "Loading..."
+
+log.TextColor3 = Color3.fromRGB(190,190,210)
+
+log.Font = Enum.Font.Gotham
+log.TextScaled = true
+
 log.Parent = frame
 
--- スクロール
+-- =========================
+-- SCROLL
+-- =========================
+
 local scroll = Instance.new("ScrollingFrame")
-scroll.Size = UDim2.new(1,-10,1,-80)
-scroll.Position = UDim2.new(0,5,0,80)
+
+scroll.Size = UDim2.new(1,-20,1,-100)
+scroll.Position = UDim2.new(0,10,0,90)
+
 scroll.BackgroundTransparency = 1
+
+scroll.ScrollBarThickness = 2
+
 scroll.CanvasSize = UDim2.new(0,0,0,0)
-scroll.ScrollBarThickness = 4
+
 scroll.Parent = frame
 
 local layout = Instance.new("UIListLayout")
-layout.Padding = UDim.new(0,5)
+
+layout.Padding = UDim.new(0,8)
 layout.Parent = scroll
 
 -- =========================
---  NOTIFY
+-- RUN SCRIPT
 -- =========================
-getgenv().Notify = function(text)
-	log.Text = text
-end
 
--- =========================
---  DRAG
--- =========================
-local dragging = false
-local dragStart
-local startPos
-
-topbar.InputBegan:Connect(function(input)
-
-	if input.UserInputType ~= Enum.UserInputType.MouseButton1
-	and input.UserInputType ~= Enum.UserInputType.Touch then
-		return
-	end
-
-	local pos = input.Position
-	local absPos = topbar.AbsolutePosition
-	local absSize = topbar.AbsoluteSize
-
-	-- 右側ボタン部分はドラッグ無効
-	if pos.X > absPos.X + absSize.X - 70 then
-		return
-	end
-
-	dragging = true
-	dragStart = pos
-	startPos = frame.Position
-end)
-
-UserInputService.InputChanged:Connect(function(input)
-
-	if dragging and (
-		input.UserInputType == Enum.UserInputType.MouseMovement
-		or input.UserInputType == Enum.UserInputType.Touch
-	) then
-
-		local delta = input.Position - dragStart
-
-		frame.Position = UDim2.new(
-			startPos.X.Scale,
-			startPos.X.Offset + delta.X,
-			startPos.Y.Scale,
-			startPos.Y.Offset + delta.Y
-		)
-	end
-end)
-
-UserInputService.InputEnded:Connect(function(input)
-
-	if input.UserInputType == Enum.UserInputType.MouseButton1
-	or input.UserInputType == Enum.UserInputType.Touch then
-
-		dragging = false
-	end
-end)
-
--- =========================
---  MINIMIZE
--- =========================
-local minimized = false
-
-minimize.MouseButton1Click:Connect(function()
-
-	minimized = not minimized
-
-	if minimized then
-
-		scroll.Visible = false
-		log.Visible = false
-		frame.Size = UDim2.new(0,320,0,30)
-		minimize.Text = "+"
-
-	else
-
-		scroll.Visible = true
-		log.Visible = true
-		frame.Size = UDim2.new(0,320,0,400)
-		minimize.Text = "-"
-	end
-end)
-
--- =========================
---  CLOSE
--- =========================
-close.MouseButton1Click:Connect(function()
-	gui:Destroy()
-end)
-
--- =========================
---  RUN SCRIPT
--- =========================
 local function run(file)
 
-	log.Text = "Loading: " .. file
+	log.Text = "Loading "..file
 
 	local success, src = pcall(function()
-		return HttpGet(game, BASE_URL .. file)
+
+		return HttpGet(
+			game,
+			BASE_URL .. file .. "?t=" .. tostring(os.time())
+		)
+
 	end)
 
 	if not success then
+
 		log.Text = "Fetch failed"
 		return
+
 	end
 
 	local func, err = loadstring(src)
 
 	if not func then
+
 		log.Text = "Compile error"
 		return
+
 	end
 
-	local ok, runtimeErr = pcall(func)
+	local ok = pcall(func)
 
 	if ok then
-		log.Text = "Executed: " .. file
+
+		log.Text = "Executed "..file
+
 	else
-		log.Text = tostring(runtimeErr)
+
+		log.Text = "Runtime error"
+
 	end
 end
 
 -- =========================
---  LOAD LIST
+-- CREATE BUTTON
 -- =========================
-local function loadList()
 
-	local success, response = pcall(function()
-		return HttpGet(game, API_URL)
+local function createButton(file)
+
+	local button = Instance.new("TextButton")
+
+	button.Size = UDim2.new(1,-5,0,45)
+
+	button.BackgroundColor3 = BUTTON
+	button.BackgroundTransparency = 0.2
+
+	button.Text =
+		file.name:gsub("%.luau$","")
+
+	button.TextColor3 = TEXT
+
+	button.Font = Enum.Font.GothamBold
+	button.TextScaled = true
+
+	button.BorderSizePixel = 0
+
+	button.Parent = scroll
+
+	-- Corner
+	local corner = Instance.new("UICorner")
+
+	corner.CornerRadius = UDim.new(0,14)
+	corner.Parent = button
+
+	-- Stroke
+	local stroke = Instance.new("UIStroke")
+
+	stroke.Thickness = 1.5
+	stroke.Color = ACCENT
+	stroke.Transparency = 0.5
+
+	stroke.Parent = button
+
+	-- Click effect
+	button.MouseButton1Down:Connect(function()
+
+		TweenService:Create(
+			button,
+			TweenInfo.new(0.08),
+			{
+				BackgroundTransparency = 0.05
+			}
+		):Play()
+
 	end)
 
-	if not success then
-		log.Text = "API failed"
-		return
+	button.MouseButton1Up:Connect(function()
+
+		TweenService:Create(
+			button,
+			TweenInfo.new(0.08),
+			{
+				BackgroundTransparency = 0.2
+			}
+		):Play()
+
+	end)
+
+	-- Run
+	button.MouseButton1Click:Connect(function()
+
+		run(file.name)
+
+	end)
+end
+
+-- =========================
+-- LOAD FILE LIST
+-- =========================
+
+local success, response = pcall(function()
+
+	return HttpGet(
+		game,
+		API_URL .. "?t=" .. tostring(os.time())
+	)
+
+end)
+
+if not success then
+
+	log.Text = "Failed to load list"
+	return
+
+end
+
+local data = HttpService:JSONDecode(response)
+
+for _, file in ipairs(data) do
+
+	if file.name:match("%.luau$") then
+
+		createButton(file)
+
 	end
+end
 
-	local data = HttpService:JSONDecode(response)
+task.wait()
 
-	for _, file in ipairs(data) do
-
-		if file.name:match("%.luau$") then
-
-			local btn = Instance.new("TextButton")
-
-			btn.Size = UDim2.new(1,-5,0,40)
-			btn.Text = file.name:gsub("%.luau$", "")
-			btn.BackgroundColor3 = Color3.fromRGB(50,50,50)
-			btn.TextColor3 = Color3.fromRGB(255,255,255)
-			btn.BorderSizePixel = 0
-			btn.Parent = scroll
-
-			btn.MouseButton1Click:Connect(function()
-				run(file.name)
-			end)
-		end
-	end
-
-	task.wait()
-
-	scroll.CanvasSize = UDim2.new(
+scroll.CanvasSize =
+	UDim2.new(
 		0,
 		0,
 		0,
 		layout.AbsoluteContentSize.Y + 10
 	)
 
-	log.Text = "Loaded"
-end
-
--- =========================
---  START
--- =========================
-loadList()
+log.Text = "Loaded"
