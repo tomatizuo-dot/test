@@ -30,14 +30,14 @@ local TEXT = Color3.fromRGB(235,235,235)
 -- =========================
 
 local ICONS = {
-	Home = "rbxassetid://87978649114872",
-	Scripts = "rbxassetid://88733495296113",
-	Player = "rbxassetid://123299484956173",
-	Settings = "rbxassetid://139420333843505"
+	Home = "rbxassetid://118963213674385",
+	Scripts = "rbxassetid://126147490057885",
+	Player = "rbxassetid://127063049110137",
+	Settings = "rbxassetid://104007408123595"
 }
 
 -- =========================
--- GUI ROOT
+-- GUI
 -- =========================
 
 local gui = Instance.new("ScreenGui")
@@ -113,24 +113,30 @@ homeText.Parent = homePage
 -- SCRIPTS
 -- =========================
 
-local function addScript(text)
+local function addScript(name)
 	local b = Instance.new("TextButton")
 	b.Size = UDim2.new(1,-20,0,40)
 	b.BackgroundColor3 = BUTTON
-	b.Text = text
+	b.Text = name
 	b.TextColor3 = TEXT
 	b.Font = Enum.Font.GothamBold
 	b.TextScaled = true
 	b.Parent = scriptPage
 
 	Instance.new("UICorner", b).CornerRadius = UDim.new(0,10)
+
+	b.MouseButton1Click:Connect(function()
+		if name == "tp" then
+			player.Character:MoveTo(Vector3.new(0,50,0))
+		end
+	end)
 end
 
 addScript("tp")
 addScript("test")
 
 -- =========================
--- PLAYER PAGE
+-- PLAYER
 -- =========================
 
 local avatar = Instance.new("ImageLabel")
@@ -158,7 +164,7 @@ nameLabel.TextXAlignment = Enum.TextXAlignment.Left
 nameLabel.Parent = playerPage
 
 -- =========================
--- SETTINGS PAGE
+-- SETTINGS TOGGLE
 -- =========================
 
 local function createToggle(text, y, callback)
@@ -202,27 +208,15 @@ local function createToggle(text, y, callback)
 		if input.UserInputType == Enum.UserInputType.MouseButton1 then
 			state = not state
 
-			if state then
-				TweenService:Create(back, TweenInfo.new(0.2), {
-					BackgroundColor3 = ACCENT
-				}):Play()
+			TweenService:Create(back,TweenInfo.new(0.2),{
+				BackgroundColor3 = state and ACCENT or Color3.fromRGB(60,60,70)
+			}):Play()
 
-				TweenService:Create(knob, TweenInfo.new(0.2), {
-					Position = UDim2.new(1,-22,0.5,-10)
-				}):Play()
-			else
-				TweenService:Create(back, TweenInfo.new(0.2), {
-					BackgroundColor3 = Color3.fromRGB(60,60,70)
-				}):Play()
+			TweenService:Create(knob,TweenInfo.new(0.2),{
+				Position = state and UDim2.new(1,-22,0.5,-10) or UDim2.new(0,2,0.5,-10)
+			}):Play()
 
-				TweenService:Create(knob, TweenInfo.new(0.2), {
-					Position = UDim2.new(0,2,0.5,-10)
-				}):Play()
-			end
-
-			if callback then
-				callback(state)
-			end
+			if callback then callback(state) end
 		end
 	end)
 end
@@ -230,22 +224,6 @@ end
 createToggle("UI Enabled",10,function(v)
 	gui.Enabled = v
 end)
-
-createToggle("FPS Boost",60,function(v)
-	print("FPS:",v)
-end)
-
--- =========================
--- INDICATOR
--- =========================
-
-local indicator = Instance.new("Frame")
-indicator.Size = UDim2.new(0,4,0,40)
-indicator.Position = UDim2.new(0,0,0,70)
-indicator.BackgroundColor3 = ACCENT
-indicator.Parent = sidebar
-
-Instance.new("UICorner", indicator).CornerRadius = UDim.new(1,0)
 
 -- =========================
 -- TAB SYSTEM
@@ -262,6 +240,13 @@ local function showPage(name)
 	current = name
 end
 
+local function setGlow(btn, state)
+	local glow = btn:FindFirstChild("Glow")
+	if glow then
+		glow.Visible = state
+	end
+end
+
 local function makeTab(name,y)
 	local t = Instance.new("TextButton")
 	t.Size = UDim2.new(1,-10,0,40)
@@ -272,9 +257,24 @@ local function makeTab(name,y)
 
 	Instance.new("UICorner", t).CornerRadius = UDim.new(0,12)
 
+	-- glow icon
+	local glow = Instance.new("ImageLabel")
+	glow.Name = "Glow"
+	glow.Size = UDim2.new(1,10,1,10)
+	glow.Position = UDim2.new(0.5,0,0.5,0)
+	glow.AnchorPoint = Vector2.new(0.5,0.5)
+	glow.BackgroundTransparency = 1
+	glow.Image = ICONS[name]
+	glow.ImageColor3 = ACCENT
+	glow.ImageTransparency = 0.7
+	glow.ScaleType = Enum.ScaleType.Fit
+	glow.Visible = false
+	glow.Parent = t
+
+	-- main icon
 	local icon = Instance.new("ImageLabel")
-	icon.Size = UDim2.new(0,24,0,24)
-	icon.Position = UDim2.new(0,12,0.5,-12)
+	icon.Size = UDim2.new(0,28,0,28)
+	icon.Position = UDim2.new(0,10,0.5,-14)
 	icon.BackgroundTransparency = 1
 	icon.Image = ICONS[name]
 	icon.ImageColor3 = TEXT
@@ -283,7 +283,7 @@ local function makeTab(name,y)
 
 	local label = Instance.new("TextLabel")
 	label.Size = UDim2.new(1,-50,1,0)
-	label.Position = UDim2.new(0,40,0,0)
+	label.Position = UDim2.new(0,44,0,0)
 	label.BackgroundTransparency = 1
 	label.Text = name
 	label.TextColor3 = TEXT
@@ -297,15 +297,13 @@ local function makeTab(name,y)
 	t.MouseButton1Click:Connect(function()
 		showPage(name)
 
-		for _,b in pairs(tabButtons) do
+		for n,b in pairs(tabButtons) do
 			b.BackgroundColor3 = BUTTON
+			setGlow(b,false)
 		end
 
 		t.BackgroundColor3 = Color3.fromRGB(55,55,80)
-
-		TweenService:Create(indicator,TweenInfo.new(0.3),{
-			Position = UDim2.new(0,0,0,t.Position.Y.Offset)
-		}):Play()
+		setGlow(t,true)
 	end)
 end
 
@@ -320,3 +318,4 @@ makeTab("Settings",220)
 
 showPage("Home")
 tabButtons["Home"].BackgroundColor3 = Color3.fromRGB(55,55,80)
+setGlow(tabButtons["Home"],true)
