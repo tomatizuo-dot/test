@@ -21,11 +21,11 @@ gui.Parent = PlayerGui
 local button = Instance.new("TextButton")
 
 -- 横そのまま / 縦2/3くらい
-button.Size = UDim2.new(0,75,0,75)
+button.Size = UDim2.new(0,70,0,70)
 
 -- 左へ1.5個分くらい移動
 -- 下ボタン高さに合わせる
-button.Position = UDim2.new(1,-285,1,-100)
+button.Position = UDim2.new(1,-240,1,-100)
 
 button.Text = "TP"
 button.TextScaled = true
