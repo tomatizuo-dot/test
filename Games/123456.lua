@@ -1,3 +1,5 @@
+getgenv().Notify("外部スクリプト読み込み成功")
+
 print("外部スクリプト読み込み成功")
 
 local module = {}
