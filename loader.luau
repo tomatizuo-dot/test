@@ -37,7 +37,7 @@ local ICONS = {
 }
 
 -- =========================
--- GUI
+-- GUI ROOT
 -- =========================
 
 local gui = Instance.new("ScreenGui")
@@ -49,7 +49,6 @@ local frame = Instance.new("Frame")
 frame.Size = UDim2.new(0,520,0,420)
 frame.Position = UDim2.new(0.5,-260,0.5,-210)
 frame.BackgroundColor3 = PANEL
-frame.BackgroundTransparency = 0.2
 frame.Parent = gui
 
 Instance.new("UICorner", frame).CornerRadius = UDim.new(0,16)
@@ -76,39 +75,26 @@ content.BackgroundTransparency = 1
 content.Parent = frame
 
 -- =========================
--- PAGE SYSTEM
+-- PAGES
 -- =========================
-
-local pageContainer = Instance.new("Frame")
-pageContainer.Size = UDim2.new(1,0,1,0)
-pageContainer.BackgroundTransparency = 1
-pageContainer.Parent = content
-
-local pageLayout = Instance.new("Frame")
-pageLayout.Size = UDim2.new(3,0,1,0)
-pageLayout.BackgroundTransparency = 1
-pageLayout.Parent = pageContainer
 
 local pages = {}
 
-local function makePage(name, index)
+local function makePage(name)
 	local page = Instance.new("Frame")
-	page.Size = UDim2.new(1/3,0,1,0)
-	page.Position = UDim2.new((index-1)/3,0,0,0)
+	page.Size = UDim2.new(1,0,1,0)
 	page.BackgroundTransparency = 1
-	page.Parent = pageLayout
+	page.Visible = false
+	page.Parent = content
 
-	pages[name] = {
-		frame = page,
-		index = index
-	}
-
+	pages[name] = page
 	return page
 end
 
-local homePage = makePage("Home",1)
-local scriptPage = makePage("Scripts",2)
-local playerPage = makePage("Player",3)
+local homePage = makePage("Home")
+local scriptPage = makePage("Scripts")
+local playerPage = makePage("Player")
+local settingsPage = makePage("Settings")
 
 -- =========================
 -- HOME
@@ -124,26 +110,10 @@ homeText.TextScaled = true
 homeText.Parent = homePage
 
 -- =========================
--- PLAYER
--- =========================
-
-local avatar = Instance.new("ImageLabel")
-avatar.Size = UDim2.new(0,100,0,100)
-avatar.Position = UDim2.new(0,10,0,10)
-avatar.BackgroundTransparency = 1
-avatar.Parent = playerPage
-
-avatar.Image = Players:GetUserThumbnailAsync(
-	player.UserId,
-	Enum.ThumbnailType.HeadShot,
-	Enum.ThumbnailSize.Size100x100
-)
-
--- =========================
 -- SCRIPTS
 -- =========================
 
-local function addButton(text)
+local function addScript(text)
 	local b = Instance.new("TextButton")
 	b.Size = UDim2.new(1,-20,0,40)
 	b.BackgroundColor3 = BUTTON
@@ -154,12 +124,116 @@ local function addButton(text)
 	b.Parent = scriptPage
 
 	Instance.new("UICorner", b).CornerRadius = UDim.new(0,10)
-
-	return b
 end
 
-addButton("tp")
-addButton("test")
+addScript("tp")
+addScript("test")
+
+-- =========================
+-- PLAYER PAGE
+-- =========================
+
+local avatar = Instance.new("ImageLabel")
+avatar.Size = UDim2.new(0,90,0,90)
+avatar.Position = UDim2.new(0,10,0,10)
+avatar.BackgroundTransparency = 1
+avatar.ScaleType = Enum.ScaleType.Fit
+avatar.Parent = playerPage
+
+avatar.Image = Players:GetUserThumbnailAsync(
+	player.UserId,
+	Enum.ThumbnailType.HeadShot,
+	Enum.ThumbnailSize.Size420x420
+)
+
+local nameLabel = Instance.new("TextLabel")
+nameLabel.Size = UDim2.new(1,-120,0,40)
+nameLabel.Position = UDim2.new(0,120,0,10)
+nameLabel.BackgroundTransparency = 1
+nameLabel.Text = player.Name
+nameLabel.TextColor3 = TEXT
+nameLabel.Font = Enum.Font.GothamBold
+nameLabel.TextScaled = true
+nameLabel.TextXAlignment = Enum.TextXAlignment.Left
+nameLabel.Parent = playerPage
+
+-- =========================
+-- SETTINGS PAGE
+-- =========================
+
+local function createToggle(text, y, callback)
+	local holder = Instance.new("Frame")
+	holder.Size = UDim2.new(1,-20,0,40)
+	holder.Position = UDim2.new(0,10,0,y)
+	holder.BackgroundColor3 = BUTTON
+	holder.Parent = settingsPage
+
+	Instance.new("UICorner", holder).CornerRadius = UDim.new(0,10)
+
+	local label = Instance.new("TextLabel")
+	label.Size = UDim2.new(1,-80,1,0)
+	label.BackgroundTransparency = 1
+	label.Text = text
+	label.TextColor3 = TEXT
+	label.Font = Enum.Font.GothamBold
+	label.TextScaled = true
+	label.TextXAlignment = Enum.TextXAlignment.Left
+	label.Parent = holder
+
+	local back = Instance.new("Frame")
+	back.Size = UDim2.new(0,50,0,24)
+	back.Position = UDim2.new(1,-60,0.5,-12)
+	back.BackgroundColor3 = Color3.fromRGB(60,60,70)
+	back.Parent = holder
+
+	Instance.new("UICorner", back).CornerRadius = UDim.new(1,0)
+
+	local knob = Instance.new("Frame")
+	knob.Size = UDim2.new(0,20,0,20)
+	knob.Position = UDim2.new(0,2,0.5,-10)
+	knob.BackgroundColor3 = Color3.fromRGB(255,255,255)
+	knob.Parent = back
+
+	Instance.new("UICorner", knob).CornerRadius = UDim.new(1,0)
+
+	local state = false
+
+	holder.InputBegan:Connect(function(input)
+		if input.UserInputType == Enum.UserInputType.MouseButton1 then
+			state = not state
+
+			if state then
+				TweenService:Create(back, TweenInfo.new(0.2), {
+					BackgroundColor3 = ACCENT
+				}):Play()
+
+				TweenService:Create(knob, TweenInfo.new(0.2), {
+					Position = UDim2.new(1,-22,0.5,-10)
+				}):Play()
+			else
+				TweenService:Create(back, TweenInfo.new(0.2), {
+					BackgroundColor3 = Color3.fromRGB(60,60,70)
+				}):Play()
+
+				TweenService:Create(knob, TweenInfo.new(0.2), {
+					Position = UDim2.new(0,2,0.5,-10)
+				}):Play()
+			end
+
+			if callback then
+				callback(state)
+			end
+		end
+	end)
+end
+
+createToggle("UI Enabled",10,function(v)
+	gui.Enabled = v
+end)
+
+createToggle("FPS Boost",60,function(v)
+	print("FPS:",v)
+end)
 
 -- =========================
 -- INDICATOR
@@ -169,7 +243,6 @@ local indicator = Instance.new("Frame")
 indicator.Size = UDim2.new(0,4,0,40)
 indicator.Position = UDim2.new(0,0,0,70)
 indicator.BackgroundColor3 = ACCENT
-indicator.BorderSizePixel = 0
 indicator.Parent = sidebar
 
 Instance.new("UICorner", indicator).CornerRadius = UDim.new(1,0)
@@ -179,19 +252,17 @@ Instance.new("UICorner", indicator).CornerRadius = UDim.new(1,0)
 -- =========================
 
 local tabButtons = {}
-local current = "Home"
+local current = nil
 
 local function showPage(name)
-	local target = pages[name].index - 1
-
-	TweenService:Create(pageLayout, TweenInfo.new(0.35, Enum.EasingStyle.Quint), {
-		Position = UDim2.new(-target,0,0,0)
-	}):Play()
-
+	if current then
+		pages[current].Visible = false
+	end
+	pages[name].Visible = true
 	current = name
 end
 
-local function makeTab(name, y)
+local function makeTab(name,y)
 	local t = Instance.new("TextButton")
 	t.Size = UDim2.new(1,-10,0,40)
 	t.Position = UDim2.new(0,5,0,y)
@@ -201,20 +272,15 @@ local function makeTab(name, y)
 
 	Instance.new("UICorner", t).CornerRadius = UDim.new(0,12)
 
-	-- icon
 	local icon = Instance.new("ImageLabel")
-	icon.Size = UDim2.new(0,22,0,22)
-	icon.Position = UDim2.new(0,12,0.5,-11)
+	icon.Size = UDim2.new(0,24,0,24)
+	icon.Position = UDim2.new(0,12,0.5,-12)
 	icon.BackgroundTransparency = 1
 	icon.Image = ICONS[name]
 	icon.ImageColor3 = TEXT
+	icon.ScaleType = Enum.ScaleType.Fit
 	icon.Parent = t
 
-	local scale = Instance.new("UIScale")
-	scale.Scale = 1
-	scale.Parent = icon
-
-	-- label
 	local label = Instance.new("TextLabel")
 	label.Size = UDim2.new(1,-50,1,0)
 	label.Position = UDim2.new(0,40,0,0)
@@ -231,52 +297,26 @@ local function makeTab(name, y)
 	t.MouseButton1Click:Connect(function()
 		showPage(name)
 
-		-- indicator move
-		TweenService:Create(indicator, TweenInfo.new(0.35), {
+		for _,b in pairs(tabButtons) do
+			b.BackgroundColor3 = BUTTON
+		end
+
+		t.BackgroundColor3 = Color3.fromRGB(55,55,80)
+
+		TweenService:Create(indicator,TweenInfo.new(0.3),{
 			Position = UDim2.new(0,0,0,t.Position.Y.Offset)
 		}):Play()
-
-		-- reset tabs
-		for _,btn in pairs(tabButtons) do
-			TweenService:Create(btn, TweenInfo.new(0.2), {
-				BackgroundColor3 = BUTTON
-			}):Play()
-
-			local img = btn:FindFirstChildOfClass("ImageLabel")
-			if img and img:FindFirstChildOfClass("UIScale") then
-				TweenService:Create(img.UIScale, TweenInfo.new(0.2), {
-					Scale = 1
-				}):Play()
-			end
-		end
-
-		-- active
-		TweenService:Create(t, TweenInfo.new(0.2), {
-			BackgroundColor3 = Color3.fromRGB(55,55,80)
-		}):Play()
-
-		local activeImg = t:FindFirstChildOfClass("ImageLabel")
-		if activeImg and activeImg:FindFirstChildOfClass("UIScale") then
-			TweenService:Create(activeImg.UIScale, TweenInfo.new(0.2), {
-				Scale = 1.1
-			}):Play()
-		end
 	end)
-
-	return t
 end
 
 makeTab("Home",70)
 makeTab("Scripts",120)
 makeTab("Player",170)
+makeTab("Settings",220)
 
 -- =========================
 -- START
 -- =========================
 
 showPage("Home")
-
-task.wait()
-indicator.Position = UDim2.new(0,0,0,tabButtons["Home"].Position.Y.Offset)
-
 tabButtons["Home"].BackgroundColor3 = Color3.fromRGB(55,55,80)
