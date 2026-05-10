@@ -249,7 +249,7 @@ local function loadList()
 			local btn = Instance.new("TextButton")
 
 			btn.Size = UDim2.new(1,-5,0,40)
-			btn.Text = file.name
+			btn.Text = file.name:gsub("%.luau$", "")
 			btn.BackgroundColor3 = Color3.fromRGB(50,50,50)
 			btn.TextColor3 = Color3.fromRGB(255,255,255)
 			btn.BorderSizePixel = 0
