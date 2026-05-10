@@ -111,11 +111,26 @@ end
 --  DRAG
 -- =========================
 local dragging = false
+local dragInput
 local dragStart
 local startPos
 
+local function update(input)
+	local delta = input.Position - dragStart
+
+	frame.Position = UDim2.new(
+		startPos.X.Scale,
+		startPos.X.Offset + delta.X,
+		startPos.Y.Scale,
+		startPos.Y.Offset + delta.Y
+	)
+end
+
 topbar.InputBegan:Connect(function(input)
-	if input.UserInputType == Enum.UserInputType.MouseButton1 then
+
+	if input.UserInputType == Enum.UserInputType.MouseButton1
+	or input.UserInputType == Enum.UserInputType.Touch then
+
 		dragging = true
 		dragStart = input.Position
 		startPos = frame.Position
@@ -128,41 +143,22 @@ topbar.InputBegan:Connect(function(input)
 	end
 end)
 
+topbar.InputChanged:Connect(function(input)
+
+	if input.UserInputType == Enum.UserInputType.MouseMovement
+	or input.UserInputType == Enum.UserInputType.Touch then
+
+		dragInput = input
+	end
+end)
+
 UserInputService.InputChanged:Connect(function(input)
-	if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
 
-		local delta = input.Position - dragStart
-
-		frame.Position = UDim2.new(
-			startPos.X.Scale,
-			startPos.X.Offset + delta.X,
-			startPos.Y.Scale,
-			startPos.Y.Offset + delta.Y
-		)
+	if input == dragInput and dragging then
+		update(input)
 	end
 end)
 
--- =========================
---  MINIMIZE
--- =========================
-local minimized = false
-
-minimize.MouseButton1Click:Connect(function()
-
-	minimized = not minimized
-
-	if minimized then
-		scroll.Visible = false
-		log.Visible = false
-		frame.Size = UDim2.new(0,320,0,30)
-		minimize.Text = "+"
-	else
-		scroll.Visible = true
-		log.Visible = true
-		frame.Size = UDim2.new(0,320,0,400)
-		minimize.Text = "-"
-	end
-end)
 
 -- =========================
 --  CLOSE
