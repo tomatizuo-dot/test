@@ -20,11 +20,12 @@ gui.Parent = PlayerGui
 -- TPボタン
 local button = Instance.new("TextButton")
 
--- 縦長・横半分
-button.Size = UDim2.new(0,90,0,220)
+-- 横そのまま / 縦2/3くらい
+button.Size = UDim2.new(0,90,0,150)
 
--- 写真位置
-button.Position = UDim2.new(1,-150,0.5,-110)
+-- 左へ1.5個分くらい移動
+-- 下ボタン高さに合わせる
+button.Position = UDim2.new(1,-285,1,-230)
 
 button.Text = "TP"
 button.TextScaled = true
@@ -49,7 +50,7 @@ button.MouseButton1Click:Connect(function()
 	local root = character:FindFirstChild("HumanoidRootPart")
 	if not root then return end
 
-	-- 画面中央レイ
+	-- 画面中央Ray
 	local viewport = camera.ViewportSize
 
 	local ray = camera:ViewportPointToRay(
